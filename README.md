@@ -2,6 +2,8 @@
 
 A full-stack AI chat app that runs with Docker Compose or on Kubernetes: a React UI, a FastAPI backend, Postgres for conversation memory, and a local LLM served by Ollama.
 
+![ChatStack running on Kubernetes at localhost:30080](docs/screenshot.png)
+
 ## Architecture
 
 ```
@@ -72,12 +74,22 @@ kubectl delete deployment frontend backend ollama db
 
 Remove everything, including the data: `kubectl delete -f k8s/ && kubectl delete secret db-secret`
 
+## Production next steps
+
+This setup targets a single-node local cluster. For a real deployment I would:
+
+- Push images to a registry (e.g. GHCR) and reference them by version tag instead of local `v1` tags
+- Replace the NodePort with an Ingress and TLS
+- Set CPU/memory requests and limits, especially for Ollama
+- Run Postgres as a StatefulSet or use a managed database, with backups
+
 ## Project structure
 
 ```
 chatstack/
 ├── backend/        FastAPI app, Dockerfile, .dockerignore
 ├── frontend/       React (Vite) app, nginx.conf, multi-stage Dockerfile
+├── docs/           screenshot
 ├── k8s/            Kubernetes manifests (db, ollama, ollama-pull Job, backend, frontend)
 ├── compose.yaml
 └── .env.example
@@ -85,6 +97,6 @@ chatstack/
 
 ## Notes
 
-- On macOS, Docker can't use the Apple GPU, so the model runs on CPU. The small 1B model keeps answers to a few seconds, at the cost of accuracy.
+- On macOS, Docker can't use the Apple GPU, so the model runs on CPU. The small 1B model keeps it usable, at the cost of accuracy. The first answer can take up to a minute while the model loads into memory; later ones are faster.
 - To try a different model, change `MODEL` and the `ollama pull` tag in `compose.yaml`.
 - Reset everything (including history and the model): `docker compose down -v`
